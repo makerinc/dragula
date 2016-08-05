@@ -358,10 +358,11 @@ function dragula (initialContainers, options) {
     }
     e.preventDefault();
 
+    var offset = getOffset(o.mirrorContainer);
     var clientX = getCoord('clientX', e);
     var clientY = getCoord('clientY', e);
-    var x = clientX - _offsetX;
-    var y = clientY - _offsetY;
+    var x = (clientX - offset.left) * 2 - _offsetX;
+    var y = (clientY - offset.top) * 2 + o.mirrorContainer.scrollTop - _offsetY;
 
     _mirror.style.left = x + 'px';
     _mirror.style.top = y + 'px';
