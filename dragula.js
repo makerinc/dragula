@@ -17,14 +17,13 @@ function dragula (initialContainers, options) {
   var _item; // item being dragged
   var _offsetX; // reference x
   var _offsetY; // reference y
-  var _moveX; // reference move x
-  var _moveY; // reference move y
   var _initialSibling; // reference sibling when grabbed
   var _currentSibling; // reference sibling now
   var _copy; // item used for copying
   var _renderTimer; // timer for setTimeout renderMirrorImage
   var _lastDropTarget = null; // last container item was over
   var _grabbed; // holds mousedown context until first mousemove
+  var _draggingStartTime;
 
   var o = options || {};
   if (o.moves === void 0) { o.moves = always; }
@@ -39,6 +38,8 @@ function dragula (initialContainers, options) {
   if (o.direction === void 0) { o.direction = 'vertical'; }
   if (o.ignoreInputTextSelection === void 0) { o.ignoreInputTextSelection = true; }
   if (o.mirrorContainer === void 0) { o.mirrorContainer = doc.body; }
+  if (o.scale === void 0) { o.scale = null; }
+  if (o.startOnLongClick === void 0) { o.startOnLongClick = null; }
 
   var drake = emitter({
     containers: o.containers,
@@ -48,7 +49,8 @@ function dragula (initialContainers, options) {
     remove: remove,
     destroy: destroy,
     canMove: canMove,
-    dragging: false
+    dragging: false,
+    scale: o.scale
   });
 
   if (o.removeOnSpill === true) {
@@ -92,8 +94,7 @@ function dragula (initialContainers, options) {
   }
 
   function grab (e) {
-    _moveX = e.clientX;
-    _moveY = e.clientY;
+    _draggingStartTime = Date.now();
 
     var ignore = whichMouseButton(e) !== 1 || e.metaKey || e.ctrlKey;
     if (ignore) {
@@ -113,6 +114,12 @@ function dragula (initialContainers, options) {
         e.preventDefault(); // fixes https://github.com/bevacqua/dragula/issues/155
       }
     }
+
+    if (o.startOnLongClick) {
+      setTimeout(function () {
+        startBecauseMouseMoved(e);
+      }, o.startOnLongClick);
+    }
   }
 
   function startBecauseMouseMoved (e) {
@@ -123,8 +130,8 @@ function dragula (initialContainers, options) {
       release({});
       return; // when text is selected on an input and then dragged, mouseup doesn't fire. this is our only hope
     }
-    // truthy check fixes #239, equality fixes #207
-    if (e.clientX !== void 0 && e.clientX === _moveX && e.clientY !== void 0 && e.clientY === _moveY) {
+    // Wait 100 ms before dragging starts
+    if (Date.now() - _draggingStartTime < 10) {
       return;
     }
     if (o.ignoreInputTextSelection) {
@@ -225,6 +232,7 @@ function dragula (initialContainers, options) {
   }
 
   function ungrab () {
+    _draggingStartTime = null;
     _grabbed = false;
     eventualMovements(true);
     movements(true);
@@ -358,11 +366,19 @@ function dragula (initialContainers, options) {
     }
     e.preventDefault();
 
-    var offset = getOffset(o.mirrorContainer);
+    var containerOffset = getOffset(o.mirrorContainer);
     var clientX = getCoord('clientX', e);
     var clientY = getCoord('clientY', e);
-    var x = (clientX - offset.left) * 2 - _offsetX;
-    var y = (clientY - offset.top) * 2 + o.mirrorContainer.scrollTop - _offsetY;
+    var x = clientX - containerOffset.left;
+    var y = clientY - containerOffset.top;
+
+    if (drake.scale) {
+      x = x / drake.scale;
+      y = y / drake.scale;
+    }
+
+    x += o.mirrorContainer.scrollLeft - _offsetX;
+    y += o.mirrorContainer.scrollTop - _offsetY;
 
     _mirror.style.left = x + 'px';
     _mirror.style.top = y + 'px';
