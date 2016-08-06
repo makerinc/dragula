@@ -147,14 +147,14 @@ function dragula (initialContainers, options) {
     eventualMovements(true);
     movements();
     end();
-    start(grabbed);
+    start(grabbed, e);
 
     var offset = getOffset(_item);
     _offsetX = getCoord('pageX', e) - offset.left;
     _offsetY = getCoord('pageY', e) - offset.top;
 
     classes.add(_copy || _item, 'gu-transit');
-    renderMirrorImage();
+    renderMirrorImage(e);
     drag(e);
   }
 
@@ -205,7 +205,7 @@ function dragula (initialContainers, options) {
     }
   }
 
-  function start (context) {
+  function start (context, e) {
     if (isCopy(context.item, context.source)) {
       _copy = context.item.cloneNode(true);
       drake.emit('cloned', _copy, context.item, 'copy');
@@ -216,7 +216,7 @@ function dragula (initialContainers, options) {
     _initialSibling = _currentSibling = nextEl(context.item);
 
     drake.dragging = true;
-    drake.emit('drag', _item, _source);
+    drake.emit('drag', _item, _source, e);
   }
 
   function invalidTarget () {
@@ -422,8 +422,7 @@ function dragula (initialContainers, options) {
       drake.emit('shadow', item, dropTarget, _source);
     }
 
-    var containerAbsolute = ['absolute', 'fixed'].indexOf(window.getComputedStyle(o.mirrorContainer).getPropertyValue('position')) > -1;
-    var container = containerAbsolute ? o.mirrorContainer : document;
+    var container = o.absoluteContainer ? o.absoluteContainer : document;
     var h = window.innerHeight;
     document.addEventListener('mousemove', function(e) {
         var mousePosition = e.pageY ? e.pageY : 0;
@@ -472,7 +471,7 @@ function dragula (initialContainers, options) {
     if (drake.dragging) { classes.add(el, 'gu-hide'); }
   }
 
-  function renderMirrorImage () {
+  function renderMirrorImage (e) {
     if (_mirror) {
       return;
     }
@@ -485,7 +484,7 @@ function dragula (initialContainers, options) {
     o.mirrorContainer.appendChild(_mirror);
     touchy(documentElement, 'add', 'mousemove', drag);
     classes.add(o.mirrorContainer, 'gu-unselectable');
-    drake.emit('cloned', _mirror, _item, 'mirror');
+    drake.emit('cloned', _mirror, _item, 'mirror', e);
   }
 
   function removeMirrorImage () {
