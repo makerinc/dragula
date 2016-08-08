@@ -423,24 +423,53 @@ function dragula (initialContainers, options) {
       drake.emit('shadow', item, dropTarget, _source);
     }
 
-    var container = o.absoluteContainer ? o.absoluteContainer : document;
-    var h = window.innerHeight;
-    document.addEventListener('mousemove', function(e) {
-        var mousePosition = e.pageY ? e.pageY : 0;
-        var topRegion = 100;
-        var bottomRegion = h - topRegion;
-        if(e.which === 1 && (mousePosition <= topRegion || mousePosition > bottomRegion )){    // e.wich = 1 => click down !
-            var scrollTop = (window.pageYOffset || container.scrollTop)  - (container.clientTop || 0);
-            var distance = e.clientY - h / 2;
-            if (distance < 0) {
-              distance = - e.clientY / 2;
+    var region = 100;
+    var container, containerRect, topRegion, bottomRegion;
+
+    if (o.absoluteContainer) {
+      container = o.absoluteContainer;
+      containerRect = container.getBoundingClientRect();
+      topRegion = region + containerRect.top;
+      bottomRegion = containerRect.bottom - region;
+    } else {
+      container = document;
+      topRegion = region;
+      bottomRegion = window.innerHeight - region;
+    }
+
+    function debounce(method, delay) {
+      clearTimeout(method._tId);
+      method._tId = setTimeout(function() {
+        method();
+      }, delay);
+    }
+
+    function scrollOnMove(e) {
+      debounce(function () {
+        requestAnimationFrame(function () {
+          if (e.which === 1 && (e.clientY <= topRegion || e.clientY > bottomRegion)) {    // e.wich = 1 => click down !
+            var distance = 1,
+              maxScroll = o.absoluteContainer ? container.scrollHeight - containerRect.height : window.innerHeight - document.body.clientHeight,
+              to;
+
+            if (e.clientY <= topRegion) {
+              distance = -distance;
             }
-            distance = distance * 0.0025; // <- speed
-            scrollToPosition(container, distance + scrollTop, 0);
-        }else{
-            document.removeEventListener('mousemove',function(){});
-        }
-    });
+
+            to = container.scrollTop + distance;
+            if ((container.scrollTop === 0 && to <= 0) || (container.scrollTop === maxScroll && to >= maxScroll)) {
+              return;
+            }
+
+            scrollToPosition(container, to, 0);
+          } else {
+            document.removeEventListener('mousemove', scrollOnMove);
+          }
+        });
+      }, 15);
+    }
+
+    document.addEventListener('mousemove', scrollOnMove);
 
     function moved (type) { drake.emit(type, item, _lastDropTarget, _source); }
     function over () { if (changed) { moved('over'); } }
