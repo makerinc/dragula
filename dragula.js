@@ -17,13 +17,14 @@ function dragula (initialContainers, options) {
   var _item; // item being dragged
   var _offsetX; // reference x
   var _offsetY; // reference y
+  var _moveX; // reference move x
+  var _moveY; // reference move y
   var _initialSibling; // reference sibling when grabbed
   var _currentSibling; // reference sibling now
   var _copy; // item used for copying
   var _renderTimer; // timer for setTimeout renderMirrorImage
   var _lastDropTarget = null; // last container item was over
   var _grabbed; // holds mousedown context until first mousemove
-  var _draggingStartTime;
 
   var o = options || {};
   if (o.moves === void 0) { o.moves = always; }
@@ -94,7 +95,8 @@ function dragula (initialContainers, options) {
   }
 
   function grab (e) {
-    _draggingStartTime = Date.now();
+    _moveX = e.clientX;
+    _moveY = e.clientY;
 
     var ignore = whichMouseButton(e) !== 1 || e.metaKey || e.ctrlKey;
     if (ignore) {
@@ -117,12 +119,12 @@ function dragula (initialContainers, options) {
 
     if (o.startOnLongClick) {
       setTimeout(function () {
-        startBecauseMouseMoved(e);
+        startBecauseMouseMoved(e, true);
       }, o.startOnLongClick);
     }
   }
 
-  function startBecauseMouseMoved (e) {
+  function startBecauseMouseMoved (e, force) {
     if (!_grabbed) {
       return;
     }
@@ -130,8 +132,8 @@ function dragula (initialContainers, options) {
       release({});
       return; // when text is selected on an input and then dragged, mouseup doesn't fire. this is our only hope
     }
-    // Wait 100 ms before dragging starts
-    if (Date.now() - _draggingStartTime < 10) {
+    // truthy check fixes #239, equality fixes #207
+    if (!force && e.clientX !== void 0 && e.clientX === _moveX && e.clientY !== void 0 && e.clientY === _moveY) {
       return;
     }
     if (o.ignoreInputTextSelection) {
@@ -232,7 +234,6 @@ function dragula (initialContainers, options) {
   }
 
   function ungrab () {
-    _draggingStartTime = null;
     _grabbed = false;
     eventualMovements(true);
     movements(true);
