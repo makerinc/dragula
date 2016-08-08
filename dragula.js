@@ -25,6 +25,7 @@ function dragula (initialContainers, options) {
   var _renderTimer; // timer for setTimeout renderMirrorImage
   var _lastDropTarget = null; // last container item was over
   var _grabbed; // holds mousedown context until first mousemove
+  var _startOnLongClickTimer;
 
   var o = options || {};
   if (o.moves === void 0) { o.moves = always; }
@@ -118,7 +119,7 @@ function dragula (initialContainers, options) {
     }
 
     if (o.startOnLongClick) {
-      setTimeout(function () {
+      _startOnLongClickTimer = setTimeout(function () {
         startBecauseMouseMoved(e, true);
       }, o.startOnLongClick);
     }
@@ -143,6 +144,10 @@ function dragula (initialContainers, options) {
       if (isInput(elementBehindCursor)) {
         return;
       }
+    }
+
+    if (_startOnLongClickTimer) {
+      clearTimeout(_startOnLongClickTimer);
     }
 
     var grabbed = _grabbed; // call to end() unsets _grabbed
