@@ -26,6 +26,7 @@ function dragula (initialContainers, options) {
   var _lastDropTarget = null; // last container item was over
   var _grabbed; // holds mousedown context until first mousemove
   var _startOnLongClickTimer;
+  var _scrollSpeed = 0;
 
   var o = options || {};
   if (o.moves === void 0) { o.moves = always; }
@@ -428,6 +429,14 @@ function dragula (initialContainers, options) {
       drake.emit('shadow', item, dropTarget, _source);
     }
 
+    document.addEventListener('mousemove', startScrolling);
+
+    function moved (type) { drake.emit(type, item, _lastDropTarget, _source); }
+    function over () { if (changed) { moved('over'); } }
+    function out () { if (_lastDropTarget) { moved('out'); } }
+  }
+
+  function startScrolling(e) {
     var region = 100;
     var container, containerRect, topRegion, bottomRegion;
 
@@ -442,60 +451,42 @@ function dragula (initialContainers, options) {
       bottomRegion = window.innerHeight - region;
     }
 
-    function debounce(method, delay) {
-      clearTimeout(method._tId);
-      method._tId = setTimeout(function() {
-        method();
-      }, delay);
+    if (e.which === 1 && (e.clientY <= topRegion || e.clientY > bottomRegion)) {
+      _scrollSpeed = 1;
+
+      if (e.clientY <= topRegion) {
+        _scrollSpeed = -_scrollSpeed;
+      }
+
+      doScroll();
+    } else {
+      _scrollSpeed = 0;
+      document.removeEventListener('mousemove', startScrolling);
     }
-
-    function scrollOnMove(e) {
-      debounce(function () {
-        requestAnimationFrame(function () {
-          if (e.which === 1 && (e.clientY <= topRegion || e.clientY > bottomRegion)) {    // e.wich = 1 => click down !
-            var distance = 1,
-              maxScroll = o.absoluteContainer ? container.scrollHeight - containerRect.height : window.innerHeight - document.body.clientHeight,
-              to;
-
-            if (e.clientY <= topRegion) {
-              distance = -distance;
-            }
-
-            to = container.scrollTop + distance;
-            if ((container.scrollTop === 0 && to <= 0) || (container.scrollTop === maxScroll && to >= maxScroll)) {
-              return;
-            }
-
-            scrollToPosition(container, to, 0);
-          } else {
-            document.removeEventListener('mousemove', scrollOnMove);
-          }
-        });
-      }, 15);
-    }
-
-    document.addEventListener('mousemove', scrollOnMove);
-
-    function moved (type) { drake.emit(type, item, _lastDropTarget, _source); }
-    function over () { if (changed) { moved('over'); } }
-    function out () { if (_lastDropTarget) { moved('out'); } }
   }
 
-  function scrollToPosition (element, to, duration) {
-    if (duration <= 0) {
-      element.scrollTop = to;
+  function doScroll() {
+    if (!_scrollSpeed) {
       return;
     }
-    var difference = to - element.scrollTop;
-    var perTick = difference / duration * 10;
 
-    setTimeout(function() {
-        element.scrollTop = element.scrollTop + perTick;
-        if (element.scrollTop === to) {
-          return;
-        }
-        scrollToPosition(element, to, duration - 10);
-    }, 10);
+    requestAnimationFrame(function () {
+      var container = o.absoluteContainer || document,
+        containerRect = container.getBoundingClientRect(),
+        to = container.scrollTop + _scrollSpeed,
+        maxScroll = o.absoluteContainer ? container.scrollHeight - containerRect.height : window.innerHeight - document.body.clientHeight;
+
+      if ((container.scrollTop === 0 && to <= 0) || (container.scrollTop === maxScroll && to >= maxScroll)) {
+        _scrollSpeed = 0;
+        return;
+      }
+
+      container.scrollTop = to;
+
+      setTimeout(function () {
+        doScroll();
+      }, 15);
+    });
   }
 
   function spillOver (el) {
