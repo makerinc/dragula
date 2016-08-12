@@ -39,7 +39,7 @@ function dragula (initialContainers, options) {
   if (o.revertOnSpill === void 0) { o.revertOnSpill = false; }
   if (o.removeOnSpill === void 0) { o.removeOnSpill = false; }
   if (o.direction === void 0) { o.direction = 'vertical'; }
-  if (o.ignoreInputTextSelection === void 0) { o.ignoreInputTextSelection = true; }
+  if (o.ignore === void 0) { o.ignore = []; }
   if (o.mirrorContainer === void 0) { o.mirrorContainer = doc.body; }
   if (o.scale === void 0) { o.scale = null; }
   if (o.startOnLongClick === void 0) { o.startOnLongClick = null; }
@@ -138,11 +138,19 @@ function dragula (initialContainers, options) {
     if (!force && e.clientX !== void 0 && e.clientX === _moveX && e.clientY !== void 0 && e.clientY === _moveY) {
       return;
     }
-    if (o.ignoreInputTextSelection) {
+    if (o.ignore.length) {
       var clientX = getCoord('clientX', e);
       var clientY = getCoord('clientY', e);
       var elementBehindCursor = doc.elementFromPoint(clientX, clientY);
-      if (isInput(elementBehindCursor)) {
+      var ignore = false;
+
+      o.ignore.forEach(function (tagName) {
+        if (tagName === elementBehindCursor.tagName.toLowerCase()) {
+          ignore = true;
+        }
+      });
+
+      if (ignore) {
         return;
       }
     }
