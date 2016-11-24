@@ -26,7 +26,10 @@ function dragula (initialContainers, options) {
   var _lastDropTarget = null; // last container item was over
   var _grabbed; // holds mousedown context until first mousemove
   var _startOnLongClickTimer;
-  var _scrollSpeed = 0;
+  var _scrollDirection = 0;
+  var _scrollTime = 0;
+  var _isScrolling = false;
+  var _scrollingStarted = 0;
 
   var o = options || {};
   if (o.moves === void 0) { o.moves = always; }
@@ -447,7 +450,7 @@ function dragula (initialContainers, options) {
 
   function startScrolling(e) {
     var region = 100;
-    var container, containerRect, topRegion, bottomRegion;
+    var container, containerRect, topRegion, bottomRegion, newScrollDirection;
 
     if (o.absoluteContainer) {
       container = o.absoluteContainer;
@@ -461,39 +464,66 @@ function dragula (initialContainers, options) {
     }
 
     if (e.which === 1 && (e.clientY <= topRegion || e.clientY > bottomRegion)) {
-      _scrollSpeed = 1;
+      newScrollDirection = 1;
 
       if (e.clientY <= topRegion) {
-        _scrollSpeed = -_scrollSpeed;
+        newScrollDirection = -1;
       }
 
-      doScroll();
+      if (newScrollDirection !== _scrollDirection) {
+        _scrollDirection = newScrollDirection;
+        _scrollTime = 0;
+        _scrollingStarted = Date.now();
+      }
+
+      if (!_isScrolling) {
+        doScroll();
+      }
     } else {
-      _scrollSpeed = 0;
-      document.removeEventListener('mousemove', startScrolling);
+      _scrollDirection = 0;
+      _scrollTime = 0;
+      _isScrolling = false;
+      if (e.which !== 1) {
+        document.removeEventListener('mousemove', startScrolling);
+      }
     }
   }
 
+  function easeInQuad(t, b, c, d) {
+    t /= d;
+	  return c*t*t + b;
+  }
+
   function doScroll() {
-    if (!_scrollSpeed) {
+    if (!_scrollDirection) {
       return;
     }
+
+    _isScrolling = true;
+    _scrollTime = Date.now() - _scrollingStarted;
 
     requestAnimationFrame(function () {
       var container = o.absoluteContainer || document,
         containerRect = container.getBoundingClientRect(),
-        to = container.scrollTop + _scrollSpeed,
-        maxScroll = o.absoluteContainer ? container.scrollHeight - containerRect.height : window.innerHeight - document.body.clientHeight;
+        maxScroll = o.absoluteContainer ? container.scrollHeight - containerRect.height : window.innerHeight - document.body.clientHeight,
+        speed = easeInQuad(_scrollTime, 1, 100, 2000),
+        to;
+
+      to = container.scrollTop + speed * _scrollDirection;
 
       if ((container.scrollTop === 0 && to <= 0) || (container.scrollTop === maxScroll && to >= maxScroll)) {
-        _scrollSpeed = 0;
+        _scrollDirection = 0;
+        _scrollTime = 0;
+        _isScrolling = false;
         return;
       }
 
       container.scrollTop = to;
 
       setTimeout(function () {
-        doScroll();
+        if (_isScrolling) {
+          doScroll();
+        }
       }, 15);
     });
   }
