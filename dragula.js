@@ -129,6 +129,11 @@ function dragula (initialContainers, options) {
     }
   }
 
+  // http://stackoverflow.com/a/4819886/291500
+  function isTouchDevice () {
+    return 'ontouchstart' in window || navigator.maxTouchPoints;
+  }
+
   function startBecauseMouseMoved (e, force) {
     if (!_grabbed) {
       return;
@@ -137,6 +142,14 @@ function dragula (initialContainers, options) {
       release({});
       return; // when text is selected on an input and then dragged, mouseup doesn't fire. this is our only hope
     }
+
+    // Disable dragging on mobile devices when user wants to scroll instead
+    if (isTouchDevice() && !force && _startOnLongClickTimer) {
+      clearTimeout(_startOnLongClickTimer);
+      grab(e);
+      return;
+    }
+
     // truthy check fixes #239, equality fixes #207
     if (!force && e.clientX !== void 0 && e.clientX === _moveX && e.clientY !== void 0 && e.clientY === _moveY) {
       return;
