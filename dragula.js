@@ -30,6 +30,7 @@ function dragula (initialContainers, options) {
   var _scrollTime = 0;
   var _isScrolling = false;
   var _scrollingStarted = 0;
+  var _isTouchDevice = false;
 
   var o = options || {};
   if (o.moves === void 0) { o.moves = always; }
@@ -75,6 +76,12 @@ function dragula (initialContainers, options) {
     var op = remove ? 'remove' : 'add';
     touchy(documentElement, op, 'mousedown', grab);
     touchy(documentElement, op, 'mouseup', release);
+
+    // http://www.stucox.com/blog/you-cant-detect-a-touchscreen/#poke-it
+    window.addEventListener('touchstart', function setIsTouchDevice () {
+      _isTouchDevice = true;
+      window.removeEventListener('touchstart', setIsTouchDevice);
+    }, false);
   }
 
   function eventualMovements (remove) {
@@ -129,11 +136,6 @@ function dragula (initialContainers, options) {
     }
   }
 
-  // http://stackoverflow.com/a/4819886/291500
-  function isTouchDevice () {
-    return 'ontouchstart' in window || navigator.maxTouchPoints;
-  }
-
   function startBecauseMouseMoved (e, force) {
     if (!_grabbed) {
       return;
@@ -144,7 +146,7 @@ function dragula (initialContainers, options) {
     }
 
     // Disable dragging on mobile devices when user wants to scroll instead
-    if (isTouchDevice() && !force && _startOnLongClickTimer) {
+    if (_isTouchDevice && !force && _startOnLongClickTimer) {
       clearTimeout(_startOnLongClickTimer);
       grab(e);
       return;
