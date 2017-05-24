@@ -385,6 +385,11 @@ function dragula (initialContainers, options) {
 
       var immediate = getImmediateChild(target, elementBehindCursor);
       var reference = getReference(target, immediate, clientX, clientY);
+
+      if (reference === 'end') {
+        reference = null;
+      }
+
       var initial = isInitialPlacement(target, reference);
       if (initial) {
         return true; // should always be able to drop it right back where it was
@@ -446,10 +451,10 @@ function dragula (initialContainers, options) {
       return;
     }
     if (
-      (reference === null && changed) ||
-      reference !== item &&
-      reference !== nextEl(item)
+      ([null, 'end'].indexOf(reference) > -1 && changed) ||
+      (reference && reference !== item && reference !== nextEl(item) && (reference !== 'end' || nextEl(item)))
     ) {
+      reference = reference === 'end' ? null : reference;
       _currentSibling = reference;
       drake.emit('preshadow', item, dropTarget, _source);
       dropTarget.insertBefore(item, reference);
@@ -588,7 +593,6 @@ function dragula (initialContainers, options) {
   }
 
   function getReference (dropTarget, target, x, y) {
-    var horizontal = o.direction === 'horizontal';
     var reference = target !== dropTarget ? inside() : outside();
     return reference;
 
@@ -600,22 +604,46 @@ function dragula (initialContainers, options) {
       for (i = 0; i < len; i++) {
         el = dropTarget.children[i];
         rect = el.getBoundingClientRect();
-        if (horizontal && (rect.left + rect.width / 2) > x) { return el; }
-        if (!horizontal && (rect.top + rect.height / 2) > y) { return el; }
+        if (o.direction === 'horizontal' && (rect.left + rect.width / 2) > x) { return el; }
+        if (o.direction === 'vertical' && (rect.top + rect.height / 2) > y) { return el; }
+        if (o.direction === 'both' && rect.left >= x && rect.right <= x && rect.top >= y && rect.bottom <= y) {
+          return el;
+        }
       }
       return null;
     }
 
     function inside () { // faster, but only available if dropped inside a child element
       var rect = target.getBoundingClientRect();
-      if (horizontal) {
-        return resolve(x > rect.left + getRectWidth(rect) / 2);
+      var yCenter = rect.top + getRectHeight(rect) / 2;
+      var xCenter = rect.left + getRectWidth(rect) / 2;
+
+      if (o.direction === 'vertical') {
+        return resolve(y > yCenter);
+      } else if (o.direction === 'horizontal') {
+        return resolve(x > xCenter);
       }
-      return resolve(y > rect.top + getRectHeight(rect) / 2);
+
+      var itemRect = _item.getBoundingClientRect();
+      if (Math.abs(rect.top - itemRect.top) < 10) {
+        return resolve(x > xCenter);
+      }
+
+      if (rect.top < itemRect.top) {
+        if (y < yCenter) {
+          return resolve(x > xCenter);
+        }
+      } else {
+        if (y > yCenter) {
+          return resolve(x > xCenter);
+        }
+      }
+
+      return null;
     }
 
     function resolve (after) {
-      return after ? nextEl(target) : target;
+      return after ? (nextEl(target) || 'end') : target;
     }
   }
 
