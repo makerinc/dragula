@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
-var emitter = require('contra/emitter');
-var crossvent = require('crossvent');
-var classes = require('./classes');
+var emitter = require("contra/emitter");
+var crossvent = require("crossvent");
+var classes = require("./classes");
 var doc = document;
 var documentElement = doc.documentElement;
 
-function dragula (initialContainers, options) {
+function dragula(initialContainers, options) {
   var len = arguments.length;
   if (len === 1 && Array.isArray(initialContainers) === false) {
     options = initialContainers;
@@ -33,20 +33,51 @@ function dragula (initialContainers, options) {
   var _isTouchDevice = false;
 
   var o = options || {};
-  if (o.moves === void 0) { o.moves = always; }
-  if (o.accepts === void 0) { o.accepts = always; }
-  if (o.invalid === void 0) { o.invalid = invalidTarget; }
-  if (o.containers === void 0) { o.containers = initialContainers || []; }
-  if (o.isContainer === void 0) { o.isContainer = never; }
-  if (o.copy === void 0) { o.copy = false; }
-  if (o.copySortSource === void 0) { o.copySortSource = false; }
-  if (o.revertOnSpill === void 0) { o.revertOnSpill = false; }
-  if (o.removeOnSpill === void 0) { o.removeOnSpill = false; }
-  if (o.direction === void 0) { o.direction = 'vertical'; }
-  if (o.ignore === void 0) { o.ignore = []; }
-  if (o.mirrorContainer === void 0) { o.mirrorContainer = doc.body; }
-  if (o.scale === void 0) { o.scale = null; }
-  if (o.startOnLongClick === void 0) { o.startOnLongClick = null; }
+  if (o.moves === void 0) {
+    o.moves = always;
+  }
+  if (o.accepts === void 0) {
+    o.accepts = always;
+  }
+  if (o.invalid === void 0) {
+    o.invalid = invalidTarget;
+  }
+  if (o.containers === void 0) {
+    o.containers = initialContainers || [];
+  }
+  if (o.isContainer === void 0) {
+    o.isContainer = never;
+  }
+  if (o.copy === void 0) {
+    o.copy = false;
+  }
+  if (o.copySortSource === void 0) {
+    o.copySortSource = false;
+  }
+  if (o.revertOnSpill === void 0) {
+    o.revertOnSpill = false;
+  }
+  if (o.removeOnSpill === void 0) {
+    o.removeOnSpill = false;
+  }
+  if (o.direction === void 0) {
+    o.direction = "vertical";
+  }
+  if (o.ignore === void 0) {
+    o.ignore = [];
+  }
+  if (o.mirrorContainer === void 0) {
+    o.mirrorContainer = doc.body;
+  }
+  if (o.scale === void 0) {
+    o.scale = null;
+  }
+  if (o.startOnLongClick === void 0) {
+    o.startOnLongClick = null;
+  }
+  if (o.delayPx === void 0) {
+    o.delayPx = 0;
+  }
 
   var drake = emitter({
     containers: o.containers,
@@ -61,52 +92,56 @@ function dragula (initialContainers, options) {
   });
 
   if (o.removeOnSpill === true) {
-    drake.on('over', spillOver).on('out', spillOut);
+    drake.on("over", spillOver).on("out", spillOut);
   }
 
   events();
 
   return drake;
 
-  function isContainer (el) {
+  function isContainer(el) {
     return drake.containers.indexOf(el) !== -1 || o.isContainer(el);
   }
 
-  function events (remove) {
-    var op = remove ? 'remove' : 'add';
-    touchy(documentElement, op, 'mousedown', grab);
-    touchy(documentElement, op, 'mouseup', release);
+  function events(remove) {
+    var op = remove ? "remove" : "add";
+    touchy(documentElement, op, "mousedown", grab);
+    touchy(documentElement, op, "mouseup", release);
 
     // http://www.stucox.com/blog/you-cant-detect-a-touchscreen/#poke-it
-    window.addEventListener('touchstart', function setIsTouchDevice () {
-      _isTouchDevice = true;
-      window.removeEventListener('touchstart', setIsTouchDevice);
-    }, false);
+    window.addEventListener(
+      "touchstart",
+      function setIsTouchDevice() {
+        _isTouchDevice = true;
+        window.removeEventListener("touchstart", setIsTouchDevice);
+      },
+      false
+    );
   }
 
-  function eventualMovements (remove) {
-    var op = remove ? 'remove' : 'add';
-    touchy(documentElement, op, 'mousemove', startBecauseMouseMoved);
+  function eventualMovements(remove) {
+    var op = remove ? "remove" : "add";
+    touchy(documentElement, op, "mousemove", startBecauseMouseMoved);
   }
 
-  function movements (remove) {
-    var op = remove ? 'remove' : 'add';
-    crossvent[op](documentElement, 'selectstart', preventGrabbed); // IE8
-    crossvent[op](documentElement, 'click', preventGrabbed);
+  function movements(remove) {
+    var op = remove ? "remove" : "add";
+    crossvent[op](documentElement, "selectstart", preventGrabbed); // IE8
+    crossvent[op](documentElement, "click", preventGrabbed);
   }
 
-  function destroy () {
+  function destroy() {
     events(true);
     release({});
   }
 
-  function preventGrabbed (e) {
+  function preventGrabbed(e) {
     if (_grabbed) {
       e.preventDefault();
     }
   }
 
-  function grab (e) {
+  function grab(e) {
     _moveX = e.clientX;
     _moveY = e.clientY;
 
@@ -121,8 +156,9 @@ function dragula (initialContainers, options) {
     }
     _grabbed = context;
     eventualMovements();
-    if (e.type === 'mousedown') {
-      if (isInput(item)) { // see also: https://github.com/bevacqua/dragula/issues/208
+    if (e.type === "mousedown") {
+      if (isInput(item)) {
+        // see also: https://github.com/bevacqua/dragula/issues/208
         item.focus(); // fixes https://github.com/bevacqua/dragula/issues/176
       } else {
         e.preventDefault(); // fixes https://github.com/bevacqua/dragula/issues/155
@@ -130,13 +166,13 @@ function dragula (initialContainers, options) {
     }
 
     if (o.startOnLongClick) {
-      _startOnLongClickTimer = setTimeout(function () {
+      _startOnLongClickTimer = setTimeout(function() {
         startBecauseMouseMoved(e, true);
       }, o.startOnLongClick);
     }
   }
 
-  function startBecauseMouseMoved (e, force) {
+  function startBecauseMouseMoved(e, force) {
     if (!_grabbed) {
       return;
     }
@@ -153,16 +189,22 @@ function dragula (initialContainers, options) {
     }
 
     // truthy check fixes #239, equality fixes #207
-    if (!force && e.clientX !== void 0 && e.clientX === _moveX && e.clientY !== void 0 && e.clientY === _moveY) {
+    if (
+      !force &&
+      e.clientX !== void 0 &&
+      Math.abs(e.clientX - _moveX) <= o.delayPx &&
+      e.clientY !== void 0 &&
+      Math.abs(e.clientY - _moveY) <= o.delayPx
+    ) {
       return;
     }
     if (o.ignore.length) {
-      var clientX = getCoord('clientX', e);
-      var clientY = getCoord('clientY', e);
+      var clientX = getCoord("clientX", e);
+      var clientY = getCoord("clientY", e);
       var elementBehindCursor = doc.elementFromPoint(clientX, clientY);
       var ignore = false;
 
-      o.ignore.forEach(function (tagName) {
+      o.ignore.forEach(function(tagName) {
         if (tagName === elementBehindCursor.tagName.toLowerCase()) {
           ignore = true;
         }
@@ -184,15 +226,15 @@ function dragula (initialContainers, options) {
     start(grabbed, e);
 
     var offset = getOffset(_item);
-    _offsetX = getCoord('pageX', e) - offset.left;
-    _offsetY = getCoord('pageY', e) - offset.top;
+    _offsetX = getCoord("pageX", e) - offset.left;
+    _offsetY = getCoord("pageY", e) - offset.top;
 
-    classes.add(_copy || _item, 'gu-transit');
+    classes.add(_copy || _item, "gu-transit");
     renderMirrorImage(e);
     drag(e);
   }
 
-  function canStart (item) {
+  function canStart(item) {
     if (drake.dragging && _mirror) {
       return;
     }
@@ -228,21 +270,21 @@ function dragula (initialContainers, options) {
     };
   }
 
-  function canMove (item) {
+  function canMove(item) {
     return !!canStart(item);
   }
 
-  function manualStart (item) {
+  function manualStart(item) {
     var context = canStart(item);
     if (context) {
       start(context);
     }
   }
 
-  function start (context, e) {
+  function start(context, e) {
     if (isCopy(context.item, context.source)) {
       _copy = context.item.cloneNode(true);
-      drake.emit('cloned', _copy, context.item, 'copy');
+      drake.emit("cloned", _copy, context.item, "copy");
     }
 
     _source = context.source;
@@ -250,14 +292,14 @@ function dragula (initialContainers, options) {
     _initialSibling = _currentSibling = nextEl(context.item);
 
     drake.dragging = true;
-    drake.emit('drag', _item, _source, e);
+    drake.emit("drag", _item, _source, e);
   }
 
-  function invalidTarget () {
+  function invalidTarget() {
     return false;
   }
 
-  function end () {
+  function end() {
     if (!drake.dragging) {
       return;
     }
@@ -265,24 +307,27 @@ function dragula (initialContainers, options) {
     drop(item, getParent(item));
   }
 
-  function ungrab () {
+  function ungrab() {
     _grabbed = false;
     eventualMovements(true);
     movements(true);
   }
 
-  function release (e) {
+  function release(e) {
     ungrab();
 
     if (!drake.dragging) {
       return;
     }
     var item = _copy || _item;
-    var clientX = getCoord('clientX', e);
-    var clientY = getCoord('clientY', e);
+    var clientX = getCoord("clientX", e);
+    var clientY = getCoord("clientY", e);
     var elementBehindCursor = getElementBehindPoint(_mirror, clientX, clientY);
     var dropTarget = findDropTarget(elementBehindCursor, clientX, clientY);
-    if (dropTarget && ((_copy && o.copySortSource) || (!_copy || dropTarget !== _source))) {
+    if (
+      dropTarget &&
+      ((_copy && o.copySortSource) || (!_copy || dropTarget !== _source))
+    ) {
       drop(item, dropTarget);
     } else if (o.removeOnSpill) {
       remove();
@@ -291,20 +336,20 @@ function dragula (initialContainers, options) {
     }
   }
 
-  function drop (item, target) {
+  function drop(item, target) {
     var parent = getParent(item);
     if (_copy && o.copySortSource && target === _source) {
       parent.removeChild(_item);
     }
     if (isInitialPlacement(target)) {
-      drake.emit('cancel', item, _source, _source);
+      drake.emit("cancel", item, _source, _source);
     } else {
-      drake.emit('drop', item, target, _source, _currentSibling);
+      drake.emit("drop", item, target, _source, _currentSibling);
     }
     cleanup();
   }
 
-  function remove () {
+  function remove() {
     if (!drake.dragging) {
       return;
     }
@@ -313,11 +358,11 @@ function dragula (initialContainers, options) {
     if (parent) {
       parent.removeChild(item);
     }
-    drake.emit(_copy ? 'cancel' : 'remove', item, parent, _source);
+    drake.emit(_copy ? "cancel" : "remove", item, parent, _source);
     cleanup();
   }
 
-  function cancel (revert) {
+  function cancel(revert) {
     if (!drake.dragging) {
       return;
     }
@@ -333,32 +378,32 @@ function dragula (initialContainers, options) {
       }
     }
     if (initial || reverts) {
-      drake.emit('cancel', item, _source, _source);
+      drake.emit("cancel", item, _source, _source);
     } else {
-      drake.emit('drop', item, parent, _source, _currentSibling);
+      drake.emit("drop", item, parent, _source, _currentSibling);
     }
     cleanup();
   }
 
-  function cleanup () {
+  function cleanup() {
     var item = _copy || _item;
     ungrab();
     removeMirrorImage();
     if (item) {
-      classes.rm(item, 'gu-transit');
+      classes.rm(item, "gu-transit");
     }
     if (_renderTimer) {
       clearTimeout(_renderTimer);
     }
     drake.dragging = false;
     if (_lastDropTarget) {
-      drake.emit('out', item, _lastDropTarget, _source);
+      drake.emit("out", item, _lastDropTarget, _source);
     }
-    drake.emit('dragend', item);
+    drake.emit("dragend", item);
     _source = _item = _copy = _initialSibling = _currentSibling = _renderTimer = _lastDropTarget = null;
   }
 
-  function isInitialPlacement (target, s) {
+  function isInitialPlacement(target, s) {
     var sibling;
     if (s !== void 0) {
       sibling = s;
@@ -370,14 +415,14 @@ function dragula (initialContainers, options) {
     return target === _source && sibling === _initialSibling;
   }
 
-  function findDropTarget (elementBehindCursor, clientX, clientY) {
+  function findDropTarget(elementBehindCursor, clientX, clientY) {
     var target = elementBehindCursor;
     while (target && !accepted()) {
       target = getParent(target);
     }
     return target;
 
-    function accepted () {
+    function accepted() {
       var droppable = isContainer(target);
       if (droppable === false) {
         return false;
@@ -386,7 +431,7 @@ function dragula (initialContainers, options) {
       var immediate = getImmediateChild(target, elementBehindCursor);
       var reference = getReference(target, immediate, clientX, clientY);
 
-      if (reference === 'end') {
+      if (reference === "end") {
         reference = null;
       }
 
@@ -398,15 +443,15 @@ function dragula (initialContainers, options) {
     }
   }
 
-  function drag (e) {
+  function drag(e) {
     if (!_mirror) {
       return;
     }
     e.preventDefault();
 
     var containerOffset = getOffset(o.mirrorContainer);
-    var clientX = getCoord('clientX', e);
-    var clientY = getCoord('clientY', e);
+    var clientX = getCoord("clientX", e);
+    var clientY = getCoord("clientY", e);
     var x = clientX - containerOffset.left;
     var y = clientY - containerOffset.top;
 
@@ -418,8 +463,8 @@ function dragula (initialContainers, options) {
     x += o.mirrorContainer.scrollLeft - _offsetX;
     y += o.mirrorContainer.scrollTop - _offsetY;
 
-    _mirror.style.left = x + 'px';
-    _mirror.style.top = y + 'px';
+    _mirror.style.left = x + "px";
+    _mirror.style.top = y + "px";
 
     var item = _copy || _item;
     var elementBehindCursor = getElementBehindPoint(_mirror, clientX, clientY);
@@ -451,21 +496,34 @@ function dragula (initialContainers, options) {
       return;
     }
     if (
-      ([null, 'end'].indexOf(reference) > -1 && changed) ||
-      (reference && reference !== item && reference !== nextEl(item) && (reference !== 'end' || nextEl(item)))
+      ([null, "end"].indexOf(reference) > -1 && changed) ||
+      (reference &&
+        reference !== item &&
+        reference !== nextEl(item) &&
+        (reference !== "end" || nextEl(item)))
     ) {
-      reference = reference === 'end' ? null : reference;
+      reference = reference === "end" ? null : reference;
       _currentSibling = reference;
-      drake.emit('preshadow', item, dropTarget, _source);
+      drake.emit("preshadow", item, dropTarget, _source);
       dropTarget.insertBefore(item, reference);
-      drake.emit('shadow', item, dropTarget, _source);
+      drake.emit("shadow", item, dropTarget, _source);
     }
 
-    document.addEventListener('mousemove', startScrolling);
+    document.addEventListener("mousemove", startScrolling);
 
-    function moved (type) { drake.emit(type, item, _lastDropTarget, _source); }
-    function over () { if (changed) { moved('over'); } }
-    function out () { if (_lastDropTarget) { moved('out'); } }
+    function moved(type) {
+      drake.emit(type, item, _lastDropTarget, _source);
+    }
+    function over() {
+      if (changed) {
+        moved("over");
+      }
+    }
+    function out() {
+      if (_lastDropTarget) {
+        moved("out");
+      }
+    }
   }
 
   function startScrolling(e) {
@@ -504,14 +562,14 @@ function dragula (initialContainers, options) {
       _scrollTime = 0;
       _isScrolling = false;
       if (e.which !== 1) {
-        document.removeEventListener('mousemove', startScrolling);
+        document.removeEventListener("mousemove", startScrolling);
       }
     }
   }
 
   function easeInQuad(t, b, c, d) {
     t /= d;
-	  return c*t*t + b;
+    return c * t * t + b;
   }
 
   function doScroll() {
@@ -522,16 +580,21 @@ function dragula (initialContainers, options) {
     _isScrolling = true;
     _scrollTime = Date.now() - _scrollingStarted;
 
-    requestAnimationFrame(function () {
+    requestAnimationFrame(function() {
       var container = o.absoluteContainer || document,
         containerRect = container.getBoundingClientRect(),
-        maxScroll = o.absoluteContainer ? container.scrollHeight - containerRect.height : window.innerHeight - document.body.clientHeight,
+        maxScroll = o.absoluteContainer
+          ? container.scrollHeight - containerRect.height
+          : window.innerHeight - document.body.clientHeight,
         speed = easeInQuad(_scrollTime, 1, 100, 2000),
         to;
 
       to = container.scrollTop + speed * _scrollDirection;
 
-      if ((container.scrollTop === 0 && to <= 0) || (container.scrollTop === maxScroll && to >= maxScroll)) {
+      if (
+        (container.scrollTop === 0 && to <= 0) ||
+        (container.scrollTop === maxScroll && to >= maxScroll)
+      ) {
         _scrollDirection = 0;
         _scrollTime = 0;
         _isScrolling = false;
@@ -540,7 +603,7 @@ function dragula (initialContainers, options) {
 
       container.scrollTop = to;
 
-      setTimeout(function () {
+      setTimeout(function() {
         if (_isScrolling) {
           doScroll();
         }
@@ -548,40 +611,42 @@ function dragula (initialContainers, options) {
     });
   }
 
-  function spillOver (el) {
-    classes.rm(el, 'gu-hide');
+  function spillOver(el) {
+    classes.rm(el, "gu-hide");
   }
 
-  function spillOut (el) {
-    if (drake.dragging) { classes.add(el, 'gu-hide'); }
+  function spillOut(el) {
+    if (drake.dragging) {
+      classes.add(el, "gu-hide");
+    }
   }
 
-  function renderMirrorImage (e) {
+  function renderMirrorImage(e) {
     if (_mirror) {
       return;
     }
     var rect = _item.getBoundingClientRect();
     _mirror = _item.cloneNode(true);
-    _mirror.style.width = getRectWidth(rect) + 'px';
-    _mirror.style.height = getRectHeight(rect) + 'px';
-    classes.rm(_mirror, 'gu-transit');
-    classes.add(_mirror, 'gu-mirror');
+    _mirror.style.width = getRectWidth(rect) + "px";
+    _mirror.style.height = getRectHeight(rect) + "px";
+    classes.rm(_mirror, "gu-transit");
+    classes.add(_mirror, "gu-mirror");
     o.mirrorContainer.appendChild(_mirror);
-    touchy(documentElement, 'add', 'mousemove', drag);
-    classes.add(o.mirrorContainer, 'gu-unselectable');
-    drake.emit('cloned', _mirror, _item, 'mirror', e);
+    touchy(documentElement, "add", "mousemove", drag);
+    classes.add(o.mirrorContainer, "gu-unselectable");
+    drake.emit("cloned", _mirror, _item, "mirror", e);
   }
 
-  function removeMirrorImage () {
+  function removeMirrorImage() {
     if (_mirror) {
-      classes.rm(o.mirrorContainer, 'gu-unselectable');
-      touchy(documentElement, 'remove', 'mousemove', drag);
+      classes.rm(o.mirrorContainer, "gu-unselectable");
+      touchy(documentElement, "remove", "mousemove", drag);
       getParent(_mirror).removeChild(_mirror);
       _mirror = null;
     }
   }
 
-  function getImmediateChild (dropTarget, target) {
+  function getImmediateChild(dropTarget, target) {
     var immediate = target;
     while (immediate !== dropTarget && getParent(immediate) !== dropTarget) {
       immediate = getParent(immediate);
@@ -592,11 +657,12 @@ function dragula (initialContainers, options) {
     return immediate;
   }
 
-  function getReference (dropTarget, target, x, y) {
+  function getReference(dropTarget, target, x, y) {
     var reference = target !== dropTarget ? inside() : outside();
     return reference;
 
-    function outside () { // slower, but able to figure out any position
+    function outside() {
+      // slower, but able to figure out any position
       var len = dropTarget.children.length;
       var i;
       var el;
@@ -604,23 +670,34 @@ function dragula (initialContainers, options) {
       for (i = 0; i < len; i++) {
         el = dropTarget.children[i];
         rect = el.getBoundingClientRect();
-        if (o.direction === 'horizontal' && (rect.left + rect.width / 2) > x) { return el; }
-        if (o.direction === 'vertical' && (rect.top + rect.height / 2) > y) { return el; }
-        if (o.direction === 'both' && rect.left >= x && rect.right <= x && rect.top >= y && rect.bottom <= y) {
+        if (o.direction === "horizontal" && rect.left + rect.width / 2 > x) {
+          return el;
+        }
+        if (o.direction === "vertical" && rect.top + rect.height / 2 > y) {
+          return el;
+        }
+        if (
+          o.direction === "both" &&
+          rect.left >= x &&
+          rect.right <= x &&
+          rect.top >= y &&
+          rect.bottom <= y
+        ) {
           return el;
         }
       }
       return null;
     }
 
-    function inside () { // faster, but only available if dropped inside a child element
+    function inside() {
+      // faster, but only available if dropped inside a child element
       var rect = target.getBoundingClientRect();
       var yCenter = rect.top + getRectHeight(rect) / 2;
       var xCenter = rect.left + getRectWidth(rect) / 2;
 
-      if (o.direction === 'vertical') {
+      if (o.direction === "vertical") {
         return resolve(y > yCenter);
-      } else if (o.direction === 'horizontal') {
+      } else if (o.direction === "horizontal") {
         return resolve(x > xCenter);
       }
 
@@ -642,31 +719,31 @@ function dragula (initialContainers, options) {
       return null;
     }
 
-    function resolve (after) {
-      return after ? (nextEl(target) || 'end') : target;
+    function resolve(after) {
+      return after ? nextEl(target) || "end" : target;
     }
   }
 
-  function isCopy (item, container) {
-    return typeof o.copy === 'boolean' ? o.copy : o.copy(item, container);
+  function isCopy(item, container) {
+    return typeof o.copy === "boolean" ? o.copy : o.copy(item, container);
   }
 }
 
-function touchy (el, op, type, fn) {
+function touchy(el, op, type, fn) {
   var touch = {
-    mouseup: 'touchend',
-    mousedown: 'touchstart',
-    mousemove: 'touchmove'
+    mouseup: "touchend",
+    mousedown: "touchstart",
+    mousemove: "touchmove"
   };
   var pointers = {
-    mouseup: 'pointerup',
-    mousedown: 'pointerdown',
-    mousemove: 'pointermove'
+    mouseup: "pointerup",
+    mousedown: "pointerdown",
+    mousemove: "pointermove"
   };
   var microsoft = {
-    mouseup: 'MSPointerUp',
-    mousedown: 'MSPointerDown',
-    mousemove: 'MSPointerMove'
+    mouseup: "MSPointerUp",
+    mousedown: "MSPointerDown",
+    mousemove: "MSPointerMove"
   };
   if (global.navigator.pointerEnabled) {
     crossvent[op](el, pointers[type], fn);
@@ -678,26 +755,33 @@ function touchy (el, op, type, fn) {
   }
 }
 
-function whichMouseButton (e) {
-  if (e.touches !== void 0) { return e.touches.length; }
-  if (e.which !== void 0 && e.which !== 0) { return e.which; } // see https://github.com/bevacqua/dragula/issues/261
-  if (e.buttons !== void 0) { return e.buttons; }
+function whichMouseButton(e) {
+  if (e.touches !== void 0) {
+    return e.touches.length;
+  }
+  if (e.which !== void 0 && e.which !== 0) {
+    return e.which;
+  } // see https://github.com/bevacqua/dragula/issues/261
+  if (e.buttons !== void 0) {
+    return e.buttons;
+  }
   var button = e.button;
-  if (button !== void 0) { // see https://github.com/jquery/jquery/blob/99e8ff1baa7ae341e94bb89c3e84570c7c3ad9ea/src/event.js#L573-L575
-    return button & 1 ? 1 : button & 2 ? 3 : (button & 4 ? 2 : 0);
+  if (button !== void 0) {
+    // see https://github.com/jquery/jquery/blob/99e8ff1baa7ae341e94bb89c3e84570c7c3ad9ea/src/event.js#L573-L575
+    return button & 1 ? 1 : button & 2 ? 3 : button & 4 ? 2 : 0;
   }
 }
 
-function getOffset (el) {
+function getOffset(el) {
   var rect = el.getBoundingClientRect();
   return {
-    left: rect.left + getScroll('scrollLeft', 'pageXOffset'),
-    top: rect.top + getScroll('scrollTop', 'pageYOffset')
+    left: rect.left + getScroll("scrollLeft", "pageXOffset"),
+    top: rect.top + getScroll("scrollTop", "pageYOffset")
   };
 }
 
-function getScroll (scrollProp, offsetProp) {
-  if (typeof global[offsetProp] !== 'undefined') {
+function getScroll(scrollProp, offsetProp) {
+  if (typeof global[offsetProp] !== "undefined") {
     return global[offsetProp];
   }
   if (documentElement.clientHeight) {
@@ -706,32 +790,55 @@ function getScroll (scrollProp, offsetProp) {
   return doc.body[scrollProp];
 }
 
-function getElementBehindPoint (point, x, y) {
+function getElementBehindPoint(point, x, y) {
   var p = point || {};
   var state = p.className;
   var el;
-  p.className += ' gu-hide';
+  p.className += " gu-hide";
   el = doc.elementFromPoint(x, y);
   p.className = state;
   return el;
 }
 
-function never () { return false; }
-function always () { return true; }
-function getRectWidth (rect) { return rect.width || (rect.right - rect.left); }
-function getRectHeight (rect) { return rect.height || (rect.bottom - rect.top); }
-function getParent (el) { return el.parentNode === doc ? null : el.parentNode; }
-function isInput (el) { return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || isEditable(el); }
-function isEditable (el) {
-  if (!el) { return false; } // no parents were editable
-  if (el.contentEditable === 'false') { return false; } // stop the lookup
-  if (el.contentEditable === 'true') { return true; } // found a contentEditable element in the chain
+function never() {
+  return false;
+}
+function always() {
+  return true;
+}
+function getRectWidth(rect) {
+  return rect.width || rect.right - rect.left;
+}
+function getRectHeight(rect) {
+  return rect.height || rect.bottom - rect.top;
+}
+function getParent(el) {
+  return el.parentNode === doc ? null : el.parentNode;
+}
+function isInput(el) {
+  return (
+    el.tagName === "INPUT" ||
+    el.tagName === "TEXTAREA" ||
+    el.tagName === "SELECT" ||
+    isEditable(el)
+  );
+}
+function isEditable(el) {
+  if (!el) {
+    return false;
+  } // no parents were editable
+  if (el.contentEditable === "false") {
+    return false;
+  } // stop the lookup
+  if (el.contentEditable === "true") {
+    return true;
+  } // found a contentEditable element in the chain
   return isEditable(getParent(el)); // contentEditable is set to 'inherit'
 }
 
-function nextEl (el) {
+function nextEl(el) {
   return el.nextElementSibling || manually();
-  function manually () {
+  function manually() {
     var sibling = el;
     do {
       sibling = sibling.nextSibling;
@@ -740,7 +847,7 @@ function nextEl (el) {
   }
 }
 
-function getEventHost (e) {
+function getEventHost(e) {
   // on touchend event, we have to use `e.changedTouches`
   // see http://stackoverflow.com/questions/7192563/touchend-event-properties
   // see https://github.com/bevacqua/dragula/issues/34
@@ -753,11 +860,11 @@ function getEventHost (e) {
   return e;
 }
 
-function getCoord (coord, e) {
+function getCoord(coord, e) {
   var host = getEventHost(e);
   var missMap = {
-    pageX: 'clientX', // IE8
-    pageY: 'clientY' // IE8
+    pageX: "clientX", // IE8
+    pageY: "clientY" // IE8
   };
   if (coord in missMap && !(coord in host) && missMap[coord] in host) {
     coord = missMap[coord];
